@@ -8,24 +8,12 @@ import "cropperjs/dist/cropper.css";
 
 const Main = () => {
   const filterElement = [
-    {
-      name: "brightness",
-    },
-    {
-      name: "grayscale",
-    },
-    {
-      name: "sepia",
-    },
-    {
-      name: "saturate",
-    },
-    {
-      name: "contrast",
-    },
-    {
-      name: "hueRotate",
-    },
+    { name: "brightness" },
+    { name: "grayscale" },
+    { name: "sepia" },
+    { name: "saturate" },
+    { name: "contrast" },
+    { name: "hueRotate" },
   ];
 
   const initialState = {
@@ -145,10 +133,42 @@ const Main = () => {
   };
 
   const saveImage = () => {
-    const link = document.createElement("a");
-    link.href = state.image;
-    link.download = "edited-image.png";
-    link.click();
+    // Create a canvas to draw the edited image
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    // Get the dimensions of the canvas
+    const img = new Image();
+    img.src = state.image;
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Apply transformations and filters
+      context.filter = `
+        brightness(${state.brightness}%) 
+        contrast(${state.contrast}%) 
+        grayscale(${state.grayscale}%) 
+        saturate(${state.saturate}%) 
+        sepia(${state.sepia}%) 
+        hue-rotate(${state.hueRotate}deg)
+      `;
+
+      context.translate(canvas.width / 2, canvas.height / 2);
+      context.rotate((state.rotate * Math.PI) / 180);
+      context.scale(state.horizontal, state.vertical);
+      context.translate(-canvas.width / 2, -canvas.height / 2);
+
+      // Draw the image onto the canvas with the applied transformations and filters
+      context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to a data URL and create a link to download the image
+      const editedImage = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = editedImage;
+      link.download = "edited-image.png";
+      link.click();
+    };
   };
 
   return (
